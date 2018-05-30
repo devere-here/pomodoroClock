@@ -1,474 +1,340 @@
-var intervalID1;
-var intervalID2;
-var count = 0;
-var minuteCount = 0;
-var hourCount = 0;
-var currentHours = parseInt(document.getElementById("hours").textContent);
-var currentMinutes = parseInt(document.getElementById("minutes").textContent);
-var currentSeconds = parseInt(document.getElementById("seconds").textContent);
-var startingHours;
-var startingMinutes;
-var startingSeconds;
-var totalHours = parseInt(document.getElementById("totalHours").textContent);
-var totalMinutes = parseInt(document.getElementById("totalMinutes").textContent);
-var totalSeconds = parseInt(document.getElementById("totalSeconds").textContent);
-var extraHours = parseInt(document.getElementById("extraHours").textContent);
-var extraMinutes = parseInt(document.getElementById("extraMinutes").textContent);
-var extraSeconds = parseInt(document.getElementById("extraSeconds").textContent);
-var complete = false;
-var ticking = false;
+let regularTimeInterval, bonusTimeInterval, minuteCount = -1, complete = false, ticking = false
 
+let currentTime = {
+  hours: +document.getElementById('hours').textContent,
+  minutes: +document.getElementById('minutes').textContent,
+  seconds: +document.getElementById('seconds').textContent
+},
+  totalTime = {
+  hours: +document.getElementById('totalHours').textContent,
+  minutes: +document.getElementById('totalMinutes').textContent,
+  seconds: +document.getElementById('totalSeconds').textContent
+},
+  extraTime = {
+  hours: 0,
+  minutes: 0,
+  seconds: 0
+}
+
+// functions that perform main clock functionalities
+
+//Function that starts the countdown
+function startClock(){
+  minuteCount = -1
+
+  if (ticking === false && (currentTime.minutes > 0 || currentTime.hours > 0)){
+
+    ticking = true
+    regularTimeInterval = setInterval(clockTick, 1000)
+  }
+}
+
+//Function stops the ticking of the clock
+function stopClock(){
+  ticking = false
+  clearInterval(regularTimeInterval)
+}
 
 
 //Decrement Time
-function decrementTime(){
-  
-  if(currentSeconds == 0 && currentMinutes == 0 && currentHours == 0){
-    
-    giveUp();
-    startExtraTimeCount();
-    resetMainClock();
-    
-  }else{
-    
-    if(currentSeconds == 0){         
-      currentSeconds = 59;
-      currentMinutes--;
+function clockTick(){
 
-      if(currentMinutes == 0 && currentHours > 0){
-        currentMinutes = 59;
-        currentHours--;
-        
-        if(currentHours == 0){
-          $("#hours").css("display", "none");
-          $("#mainHoursColon").css("display", "none");
-          $("#mainScreen").css("font-size", 225);
+  if (+currentTime.seconds === 0 && +currentTime.minutes === 0 && +currentTime.hours === 0){
 
-        }
+    giveUp()
+    startExtraTimeCount()
+    resetMainClock()
+  } else {
+
+    if (+currentTime.seconds === 0){
+      currentTime.seconds = 59
+      currentTime.minutes--
+      minuteCount++
+
+      if (+currentTime.minutes === 0 && currentTime.hours > 0){
+        currentTime.minutes = 59
+        currentTime.hours--
+
       }
-    }else{ 
-      currentSeconds--;
-          
-      if(currentSeconds == 0){      
-        minuteCount++;
-        
-        if(minuteCount == 60){
-          minuteCount = 0;
-          hourCount++;
-          
-        }
-            
-      }
+    } else {
+      currentTime.seconds--
     }
 
-     if(currentHours < 10 && currentHours.toString().length < 2){
-       currentHours = "0" + currentHours;
-       
-     }if(currentMinutes < 10 && currentMinutes.toString().length < 2){
-       currentMinutes = "0" + currentMinutes;
-       
-     }if(currentSeconds < 10 && currentSeconds.toString().length < 2){
-       currentSeconds = "0" + currentSeconds;
-     }
-    
-     document.getElementById("hours").textContent = currentHours;
-     document.getElementById("minutes").textContent = currentMinutes;
-     document.getElementById("seconds").textContent = currentSeconds;
-    
+    updateMainClockScreen()
    }
- 
  }
 
-//Increments extra time after oringinal clock was finished
-function incrementTime(){
-  
-  if(extraSeconds == 59){
-     extraSeconds = 0;
-     extraMinutes++;
-    
-    if(extraMinutes == 59){
-      extraMinutes = 0;
-      extraHours++;
-    }
-    
-   }else{   
-     extraSeconds++;
-   }
-  
-  if(extraHours > 0){
-    $("#extraHours").css("display", "inline");
-    $("#extraHoursColon").css("display", "inline");
+ function giveUp(){
 
+  if (ticking === true){
+
+    stopClock()
+
+    if (complete === true){
+      startExtraTimeCount()
+    }
   }
-  
-  if(extraHours < 10 && extraHours.toString().length < 2){
-    extraHours = "0" + extraHours;
-    
-  }if(extraMinutes < 10 && extraMinutes.toString().length < 2){
-    extraMinutes = "0" + extraMinutes;
-    
-  }if(extraSeconds < 10 && extraSeconds.toString().length < 2){
-    extraSeconds = "0" + extraSeconds;
+  updateTotalTime()
+  resetMainClock()
+}
+
+function resetMainClock(){
+
+  currentTime.hours = '00'
+  currentTime.minutes = '00'
+  currentTime.seconds = '00'
+
+  document.getElementById('hours').textContent = currentTime.hours
+  document.getElementById('minutes').textContent = currentTime.minutes
+  document.getElementById('seconds').textContent = currentTime.seconds
+
+  $('#hours').css('display', 'none')
+  $('#mainColonHours').css('display', 'none')
+  $('#mainScreen').css('font-size', 225)
+
+}
+
+function updateMainClockScreen(){
+
+  if (+currentTime.hours === 0){
+
+    $('#hours').css('display', 'none')
+    $('#mainColonHours').css('display', 'none')
+    $('#mainScreen').css('font-size', 225)
+  } else {
+
+    $('#hours').css('display', 'inline')
+    $('#mainColonHours').css('display', 'inline')
+    $('#mainScreen').css('font-size', 120) 
   }
-  
-  document.getElementById("extraHours").textContent = extraHours;
-  document.getElementById("extraMinutes").textContent = extraMinutes;
-  document.getElementById("extraSeconds").textContent = extraSeconds;
-  
+
+  if (currentTime.seconds < 10 && currentTime.seconds.toString().length < 2){
+    currentTime.seconds = '0' + currentTime.seconds
+  }
+  if (currentTime.minutes.toString().length < 2){
+    currentTime.minutes = '0' + currentTime.minutes
+  }
+  if (currentTime.hours.toString().length < 2){
+    currentTime.hours = '0' + currentTime.hours
+  }
+
+  document.getElementById('hours').textContent = currentTime.hours
+  document.getElementById('minutes').textContent = currentTime.minutes
+  document.getElementById('seconds').textContent = currentTime.seconds
+
+}
+
+
+// change start time
+
+function increaseMinutes(amount){
+
+  if (ticking === false){
+    currentTime.minutes = +currentTime.minutes + amount
+
+    if (currentTime.minutes >= 60){
+      currentTime.hours++
+      currentTime.minutes -= 60
+    }
+
+    updateMainClockScreen()
+  }
+}
+
+ function decreaseMinutes(amount){
+
+  if (ticking === false && (currentTime.minutes > 0 || currentTime.hours > 0)){
+
+    currentTime.minutes -= amount
+
+    if (currentTime.minutes < 0 && +currentTime.hours > 0){
+      currentTime.hours--
+      currentTime.minutes = 60 + currentTime.minutes
+    }
+    if (currentTime.minutes < 0 && +currentTime.hours === 0){
+      currentTime.minutes = 0
+    }
+
+    updateMainClockScreen()
+  }
+}
+
+
+//Increments extra time after oringinal clock was finished
+function incrementBonusTime(){
+
+  if (+extraTime.seconds === 59){
+     extraTime.seconds = 0
+     extraTime.minutes++
+
+    if (+extraTime.minutes === 59){
+      extraTime.minutes = 0
+      extraTime.hours++
+    }
+
+   } else {
+     extraTime.seconds++
+   }
+   updateExtraTimeClock()
+}
+
+function updateExtraTimeClock(){
+
+  if (extraTime.hours > 0){
+    $('#extraHours').css('display', 'inline')
+    $('#extraHoursColon').css('display', 'inline')
+  }
+
+  if (extraTime.hours < 10 && extraTime.hours.toString().length < 2){
+    extraTime.hours = '0' + extraTime.hours
+
+  } if (extraTime.minutes < 10 && extraTime.minutes.toString().length < 2){
+    extraTime.minutes = '0' + extraTime.minutes
+
+  } if (extraTime.seconds < 10 && extraTime.seconds.toString().length < 2){
+    extraTime.seconds = '0' + extraTime.seconds
+  }
+  document.getElementById('extraHours').textContent = extraTime.hours
+  document.getElementById('extraMinutes').textContent = extraTime.minutes
+  document.getElementById('extraSeconds').textContent = extraTime.seconds
 }
 
 
 function startExtraTimeCount(){
-  
-  ticking = true;
-  complete = true;
-  intervalID2 = setInterval(incrementTime, 1000);
-  
-}
 
-//Function that starts the countdown
-function startClock(){
-
-  if(count == 0 && (currentMinutes > 0 || currentHours > 0)){
-    
-    count++;
-    ticking = true;
-    startingHours = document.getElementById("hours").textContent;
-    startingMinutes = document.getElementById("minutes").textContent;
-    startingSeconds =  document.getElementById("seconds").textContent;
-
-    intervalID1 = setInterval(decrementTime, 1000);
-
-  }
-  
-}
-
-//Function stops the ticking of the clock
-function stopClock(){  
-  
-  count = 0;
-  ticking = false;  
-  clearInterval(intervalID1);
-  
+  ticking = true
+  complete = true
+  bonusTimeInterval = setInterval(incrementBonusTime, 1000)
 }
 
 function stopExtraTimeClock(){
-  
-  clearInterval(intervalID2);
-  ticking = false;
-  complete = false;
-  
+
+  clearInterval(bonusTimeInterval)
+  ticking = false
+  complete = false
 }
 
 function addExtraTimeToTotalTime(){
-  
-  totalSeconds = parseInt(totalSeconds) +  parseInt(extraSeconds);
-  
-  if(totalSeconds >= 60){
-    totalSeconds -= 60;
-    totalMinutes++;
-  }
-  
-  totalMinutes = parseInt(totalMinutes) + parseInt(extraMinutes);
-  
-  if(totalMinutes >= 60){
-    totalMinutes -= 60;
-    totalHours++;
-  }
-  
-  totalHours = parseInt(totalHours) + parseInt(extraHours);
-  
-  if(totalHours > 0){
-    $("#totalHours").css("display", "inline");
-    $("#totalHoursColon").css("display", "inline");
 
+  totalTime.seconds = +totalTime.seconds +  +extraTime.seconds
+
+  if (totalTime.seconds >= 60){
+    totalTime.seconds -= 60
+    totalTime.minutes++
   }
 
-  var totalHoursString = totalHours.toString();
-  var totalMinutesString = totalMinutes.toString();
-  var totalSecondsString = totalSeconds.toString();
-  
-  if(parseInt(totalHours) < 10 && totalHoursString.length < 2){
-    totalHours = "0" + totalHours;
-    
-  }if(parseInt(totalMinutes) < 10 && totalMinutesString.length < 2){
-    totalMinutes = "0" + totalMinutes;
-    
-  }if(parseInt(totalSeconds) < 10 && totalSecondsString.length < 2){
-    totalSeconds = "0" + totalSeconds;
+  totalTime.minutes = +totalTime.minutes + +extraTime.minutes
+
+  if (totalTime.minutes >= 60){
+    totalTime.minutes -= 60
+    totalTime.hours++
   }
-  
-  extraHours = 00;
-  extraMinutes = 00;
-  extraSeconds = 00;
-  document.getElementById("totalHours").textContent = totalHours;
-  document.getElementById("totalMinutes").textContent = totalMinutes;
-  document.getElementById("totalSeconds").textContent = totalSeconds;
- 
-  
+
+  totalTime.hours = +totalTime.hours + +extraTime.hours
+
+  if (totalTime.hours > 0){
+    $('#totalHours').css('display', 'inline')
+    $('#totalHoursColon').css('display', 'inline')
+  }
+
+  updateTotalClockScreen()
 }
 
 
 function resetExtraTimeClock(){
-  
-  $("#extraHours").css("display", "none");
-  $("#extraHoursColon").css("display", "none");
-  
-  extraHours = "00";
-  extraMinutes = "00";
-  extraSeconds = "00";
-  document.getElementById("extraHours").textContent = extraHours;
-  document.getElementById("extraMinutes").textContent = extraMinutes;
-  document.getElementById("extraSeconds").textContent = extraSeconds;
-  
+
+  $('#extraHours').css('display', 'none')
+  $('#extraHoursColon').css('display', 'none')
+
+  extraTime.hours = '00'
+  extraTime.minutes = '00'
+  extraTime.seconds = '00'
+  document.getElementById('extraHours').textContent = extraTime.hours
+  document.getElementById('extraMinutes').textContent = extraTime.minutes
+  document.getElementById('extraSeconds').textContent = extraTime.seconds
 }
-
-
-function giveUp(){
-  
-  if(ticking == true){
-
-    stopClock();
-    updateTotalTime();
-    resetMainClock();
-
-    if(complete == true){
-      updateTotalTime();
-      startCountExtraTime();
-      resetMainClock();
-      
-    }
-  }
-}
-
 
 
 function updateTotalTime(){
-  
-  var secondsFocused;
-  var adjustedSecondsFocused;
-  if(parseInt(currentSeconds) == 0){
-    secondsFocused = 0;  
-    
-  }else{
-    secondsFocused = 60 - parseInt(currentSeconds);
-    
+
+  let secondsFocused = +currentTime.seconds === 0 ? 0 : 60 - currentTime.seconds,
+    minutesFocused = minuteCount % 60,
+    hoursFocused = Math.floor(minuteCount / 60)
+
+
+  totalTime.seconds = +totalTime.seconds + secondsFocused
+  totalTime.minutes = +totalTime.minutes + minutesFocused
+  totalTime.hours = +totalTime.hours + hoursFocused
+
+  if (totalTime.seconds >= 60){
+    totalTime.minutes += 1
+    totalTime.seconds -= 60
   }
 
-  adjustedSecondsFocused = parseInt(totalSeconds) + parseInt(secondsFocused);
-  
-  if(adjustedSecondsFocused >= 60){
-    adjustedSecondsFocused -= 60;
-    minuteCount++;
+  if (totalTime.minutes >= 60){
+    totalTime.hours += 1
+    totalTime.minutes -= 60
+  }
+  updateTotalClockScreen()
+}
 
-  }if(minuteCount >= 60){
-    minuteCount -= 60;
-    hourCount++;
-    
-  }if(hourCount > 0){
-    $("#totalHours").css("display", "inline");
-    $("#totalHoursColon").css("display", "inline");
+
+function updateTotalClockScreen(){
+  var totalHoursString = totalTime.hours.toString()
+  var totalMinutesString = totalTime.minutes.toString()
+  var totalSecondsString = totalTime.seconds.toString()
+
+  if (totalTime.hours > 0){
+    $('#totalHours').css('display', 'inline')
+    $('#totalHoursColon').css('display', 'inline')
 
   }
-  
-  totalHours = hourCount;
-  totalMinutes = minuteCount;
-  totalSeconds = adjustedSecondsFocused;
-  
-   if(totalHours < 10 && totalHours.toString().length < 2){
-    totalHours = "0" + totalHours;
-     
-  }if(totalMinutes < 10 && totalMinutes.toString().length < 2){
-    totalMinutes = "0" + totalMinutes;
-    
-  }if(totalSeconds < 10 && totalSeconds.toString().length < 2){
-    totalSeconds = "0" + totalSeconds;
+
+  if (+totalTime.hours < 10 && totalHoursString.length < 2){
+    totalTime.hours = '0' + totalTime.hours
+
+  } if (+totalTime.minutes < 10 && totalMinutesString.length < 2){
+    totalTime.minutes = '0' + totalTime.minutes
+
+  } if (+totalTime.seconds < 10 && totalSecondsString.length < 2){
+    totalTime.seconds = '0' + totalTime.seconds
   }
 
-  document.getElementById("totalHours").textContent = totalMinutes;
-  document.getElementById("totalMinutes").textContent = totalMinutes;
-  document.getElementById("totalSeconds").textContent = totalSeconds;  
+  extraTime.hours = '00'
+  extraTime.minutes = '00'
+  extraTime.seconds = '00'
+  document.getElementById('totalHours').textContent = totalTime.hours
+  document.getElementById('totalMinutes').textContent = totalTime.minutes
+  document.getElementById('totalSeconds').textContent = totalTime.seconds
 }
 
+$('#screen').click(function(){
 
-function resetMainClock(){
-    
-  currentHours = "00";
-  currentMinutes = "00";
-  currentSeconds = "00";
-  
-  document.getElementById("hours").textContent = currentHours;
-  document.getElementById("minutes").textContent = currentMinutes;
-  document.getElementById("seconds").textContent = currentSeconds;
-  
-  $("#hours").css("display", "none");
-  $("#mainColonHours").css("display", "none");
-  $("#mainScreen").css("font-size", 225);
-  
-}
+  if (ticking === false){
+    startClock()
+    $('h3').text('Click the Screen to Stop')
 
+  } else if ( complete === true){
+    stopExtraTimeClock()
+    addExtraTimeToTotalTime()
+    resetExtraTimeClock()
+    $('h3').text('Click the Screen to Begin')
 
-
-function increaseMinutes(){
-    
-  if(ticking == false){
-    currentMinutes++;
-    
-    if(currentMinutes == 60){
-      currentHours++;
-      currentMinutes = 0;
-      
-    }
-    if(currentHours > 0){
-      $("#hours").css("display", "inline");
-      $("#mainColonHours").css("display", "inline");
-      $("#mainScreen").css("font-size", 120);
-      
-    } 
-    
-    if(currentMinutes < 10){
-      currentMinutes = "0" + currentMinutes;
-      
-    }if(currentHours < 10 && currentHours.toString().length < 2){
-      currentHours = "0" + currentHours;
-      
-    }
-    
-    document.getElementById("hours").textContent = currentHours;
-    document.getElementById("minutes").textContent = currentMinutes;
-
-  }
-  
-}
-
-function increaseMinutesBy5(){
-  
-    if(ticking == false){
-      currentMinutes = parseInt(currentMinutes) + 5;
-
-      if(currentMinutes >= 60){
-        currentHours++;
-        currentMinutes -= 60;
-        
-      }
-      if(currentHours > 0){
-        $("#hours").css("display", "inline");
-        $("#mainColonHours").css("display", "inline");
-        $("#mainScreen").css("font-size", 120);
-        
-      }
-      if(currentMinutes < 10){
-      currentMinutes = "0" + currentMinutes;
-        
-      }
-      if(currentHours < 10 && currentHours.toString().length < 2){
-        currentHours = "0" + currentHours;
-        
-      }
-      
-      document.getElementById("hours").textContent = currentHours;
-      document.getElementById("minutes").textContent = currentMinutes;
-    }
-
-}
-
-//Decreases the starting minutes value
-function decreaseMinutes(){
-  
-    if(ticking == false && (currentMinutes > 0 || currentHours > 0)){
-            
-      if(currentMinutes == 0 && currentHours > 0){
-        currentMinutes = 59;
-        currentHours--;
-       
-      }else{
-        currentMinutes--;
-      }
-      if(currentHours == 0){       
-        $("#hours").css("display", "none");
-        $("#mainColonHours").css("display", "none");
-        $("#mainScreen").css("font-size", 225);
-        
-      }      
-      if(currentMinutes < 10 && currentMinutes.toString().length < 2){
-        currentMinutes = "0" + currentMinutes;
-      }      
-      if(currentHours < 10 && currentHours.toString().length < 2){
-        currentHours = "0" + currentHours;
-      }
-          
-      document.getElementById("hours").textContent = currentHours;
-      document.getElementById("minutes").textContent = currentMinutes;
-    }
-  
-}
-
-//Decreases the minutes by 5
- function decreaseMinutesBy5(){
-   
-     if(ticking == false && (currentMinutes > 0 || currentHours > 0)){
-       currentMinutes-=5;
-       if(currentMinutes < 0 && currentHours > 0){
-         currentHours--;
-         currentMinutes = 60 + currentMinutes;
-         
-       }
-       
-       if(currentMinutes < 0 && currentHours == 0){
-         currentMinutes = 0;
-         
-       }
-       if(currentHours == 0){
-           $("#hours").css("display", "none");
-           $("#mainColonHours").css("display", "none");
-           $("#mainScreen").css("font-size", 225);
-         
-       }
-       
-       if(currentMinutes < 10 && currentMinutes.toString().length < 2){
-         currentMinutes = "0" + currentMinutes;
-         
-       }if(currentHours < 10 && currentHours.toString().length < 2){
-         currentHours = "0" + currentHours;
-         
-       } 
-       
-       document.getElementById("hours").textContent = currentHours;
-       document.getElementById("minutes").textContent = currentMinutes;
-     }
-   
- }
-
-
-
-$("#screen").click(function(){
-    
-  if(ticking == false){ 
-    startClock();
-    $("h3").text("Click the Screen to Stop");
-    
-  }else if(ticking == true && complete == false){
-    giveUp();
-    $("h3").text("Click the Screen to Begin");
-    
-  }else if(ticking == true && complete == true){
-    stopExtraTimeClock();
-    addExtraTimeToTotalTime();
-    resetExtraTimeClock();
-    $("h3").text("Click the Screen to Begin");
-
+  } else {
+    giveUp()
+    $('h3').text('Click the Screen to Begin')
   }
 })
 
-$("#plus1").click(function(){ 
-  increaseMinutes();
+$('#plus1').click(function(){
+  increaseMinutes(1)
 })
-$("#plus5").click(function(){ 
-  increaseMinutesBy5();
+$('#plus5').click(function(){
+  increaseMinutes(5)
 })
-$("#minus1").click(function(){ 
-  decreaseMinutes();
+$('#minus1').click(function(){
+  decreaseMinutes(1)
 })
-$("#minus5").click(function(){ 
-  decreaseMinutesBy5();
+$('#minus5').click(function(){
+  decreaseMinutes(5)
 })
